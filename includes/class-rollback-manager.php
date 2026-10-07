@@ -8,8 +8,10 @@ class WP_Plugin_Deploy_Rollback_Manager {
         if ( ! current_user_can('update_plugins') ) { return new WP_Error('permission_denied','You cannot update plugins.'); }
         $backup = $this->backups->get($slug,$backup_id); if ( is_wp_error($backup) ) return $backup;
         if ( empty($backup['path']) || ! is_dir($backup['path']) ) return new WP_Error('rollback_failed','Backup files are missing.');
-        require_once ABSPATH . 'wp-admin/includes/file.php'; require_once ABSPATH . 'wp-admin/includes/plugin.php';
-        WP_Filesystem(); global $wp_filesystem; if ( ! $wp_filesystem ) return new WP_Error('rollback_failed','WordPress filesystem is unavailable.');
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        $filesystem = WP_Plugin_Deploy_Filesystem::init( WP_PLUGIN_DIR );
+        if ( is_wp_error( $filesystem ) ) return new WP_Error('rollback_failed',$filesystem->get_error_message());
+        global $wp_filesystem;
         $target = WP_PLUGIN_DIR . '/' . $slug;
         foreach ( get_plugins() as $plugin_file => $plugin_data ) { if ( dirname( $plugin_file ) === $slug ) { if ( is_plugin_active( $plugin_file ) ) { deactivate_plugins( $plugin_file ); } break; } }
         if ( is_dir($target) && ! $wp_filesystem->delete($target,true) ) return new WP_Error('rollback_failed','Unable to remove current plugin files.');
