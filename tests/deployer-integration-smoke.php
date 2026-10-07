@@ -165,6 +165,14 @@ assert_true(!is_dir(WP_PLUGIN_DIR.'/fixture-plugin'),'permission denial must hap
 echo "PASS permission gate\n";
 
 reset_fixture();
+$wp_filesystem_should_fail=true;
+$deployer=make_deployer($backups,$store,$rollback);
+$result=$deployer->deploy(array('source'=>'https://github.com/acme/fixture-plugin','activate'=>true));
+assert_true(!is_wp_error($result),'writable direct filesystem fallback should allow deploy when WP_Filesystem bootstrap fails');
+assert_true(($result['active']??false)===true,'direct filesystem fallback deployment should activate plugin');
+echo "PASS direct filesystem fallback\n";
+
+reset_fixture();
 @mkdir(WP_PLUGIN_DIR.'/fixture-plugin',0777,true);
 file_put_contents(WP_PLUGIN_DIR.'/fixture-plugin/plugin.php',"<?php\n/* Plugin Name: Fixture Plugin\nVersion: 1.0.0 */\n");
 $installed_plugins['fixture-plugin']=array('file'=>'fixture-plugin/plugin.php','data'=>array('Version'=>'1.0.0'));
