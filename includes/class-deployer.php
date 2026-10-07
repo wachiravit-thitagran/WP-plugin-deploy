@@ -17,7 +17,8 @@ class WP_Plugin_Deploy_Deployer {
         $valid = $this->validator->validate($tmp,$expected?:null); if(is_wp_error($valid)){@unlink($tmp); return $valid;}
         $stage = trailingslashit(get_temp_dir()).'wp-plugin-deploy-'.wp_generate_password(10,false,false); wp_mkdir_p($stage);
         $unz = unzip_file($tmp,$stage); @unlink($tmp); if(is_wp_error($unz)){$this->cleanup($stage); return new WP_Error('invalid_archive',$unz->get_error_message());}
-        $detected = $this->detect_plugin($stage,$expected); if(is_wp_error($detected)){$this->cleanup($stage);return $detected;}
+        $hint = $expected ?: ( $source['plugin_slug_hint'] ?? '' );
+        $detected = $this->detect_plugin($stage,$hint); if(is_wp_error($detected)){$this->cleanup($stage);return $detected;}
         $slug=$detected['slug']; $target=WP_PLUGIN_DIR.'/'.$slug; $existing=$this->inspector->find_by_slug($slug); $backup=null; $replacement_started=false;
         WP_Filesystem(); global $wp_filesystem; if(!$wp_filesystem){$this->cleanup($stage);return new WP_Error('filesystem_failed','WordPress filesystem is unavailable.');}
         if($existing){$backup=$this->backups->create($slug,$target,is_plugin_active($existing['file'])); if(is_wp_error($backup)){$this->cleanup($stage);return $backup;}}
