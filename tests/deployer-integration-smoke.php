@@ -118,6 +118,15 @@ class FakeInspector {
         return $installed_plugins[$slug] ?? null;
     }
 }
+class FakeNativeUpgrader {
+    public function install_or_update($package,$slug,$activate=false){
+        global $installed_plugins,$active_plugins,$activation_should_fail;
+        if($activation_should_fail){ return new WP_Error('activation_failed','Activation failed by native upgrader fixture.'); }
+        $installed_plugins[$slug]=array('file'=>$slug.'/plugin.php','data'=>array('Version'=>'2.0.0'));
+        if($activate && !in_array($slug.'/plugin.php',$active_plugins,true)) $active_plugins[]=$slug.'/plugin.php';
+        return array('plugin_file'=>$slug.'/plugin.php','active'=>$activate);
+    }
+}
 class FakeRollback {
     public $calls=0;
     public function rollback($slug,$id=null){$this->calls++; return array('plugin_slug'=>$slug,'action'=>'rollback','status'=>'success','backup_id'=>$id);}
@@ -132,7 +141,7 @@ function make_deployer(&$backups,&$store,&$rollback){
     $backups=new FakeBackups();
     $store=new FakeStore();
     $rollback=new FakeRollback();
-    return new WP_Plugin_Deploy_Deployer(new FakeResolver(),new FakeValidator(),$backups,$store,new FakeInspector(),$rollback);
+    return new WP_Plugin_Deploy_Deployer(new FakeResolver(),new FakeValidator(),$backups,$store,new FakeInspector(),$rollback,new FakeNativeUpgrader());
 }
 function reset_fixture(){
     global $caps,$installed_plugins,$active_plugins,$activation_should_fail,$fixture_slug,$fixture_version,$wp_filesystem_should_fail,$require_filesystem_before_unzip,$wp_filesystem;
