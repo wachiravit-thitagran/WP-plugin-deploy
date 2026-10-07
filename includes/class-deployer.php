@@ -16,6 +16,7 @@ class WP_Plugin_Deploy_Deployer {
         $tmp = download_url($source['download_url'],60); if(is_wp_error($tmp)) return new WP_Error('download_failed',$tmp->get_error_message());
         $valid = $this->validator->validate($tmp,$expected?:null); if(is_wp_error($valid)){@unlink($tmp); return $valid;}
         $stage = trailingslashit(get_temp_dir()).'wp-plugin-deploy-'.wp_generate_password(10,false,false); wp_mkdir_p($stage);
+        $stage_filesystem=WP_Plugin_Deploy_Filesystem::init(get_temp_dir()); if(is_wp_error($stage_filesystem)){@unlink($tmp); $this->cleanup($stage); return $stage_filesystem;}
         $unz = unzip_file($tmp,$stage); @unlink($tmp); if(is_wp_error($unz)){$this->cleanup($stage); return new WP_Error('invalid_archive',$unz->get_error_message());}
         $hint = $expected ?: ( $source['plugin_slug_hint'] ?? '' );
         $detected = $this->detect_plugin($stage,$hint); if(is_wp_error($detected)){$this->cleanup($stage);return $detected;}
