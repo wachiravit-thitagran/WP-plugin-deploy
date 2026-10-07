@@ -84,6 +84,7 @@ define('WP_CONTENT_DIR',$fake_wp.'wp-content');
 @mkdir(WP_PLUGIN_DIR,0777,true);
 
 require __DIR__.'/../includes/class-package-validator.php';
+require __DIR__.'/../includes/class-filesystem.php';
 require __DIR__.'/../includes/class-deployer.php';
 require __DIR__.'/../includes/class-plugin-inspector.php';
 
