@@ -25,3 +25,5 @@ jobs:
         run: php tests/rollback-smoke.php
       - name: Deployer integration smoke test
         run: php tests/deployer-integration-smoke.php
+      - name: Native upgrader smoke test
+        run: php tests/native-upgrader-smoke.php
