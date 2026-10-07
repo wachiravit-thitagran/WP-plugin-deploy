@@ -18,7 +18,6 @@ function wp_mkdir_p($path){return is_dir($path) || mkdir($path,0777,true);}
 function current_user_can($cap){global $caps; return !empty($caps[$cap]);}
 function wp_clean_plugins_cache($clear=false){}
 function WP_Filesystem(){global $wp_filesystem,$wp_filesystem_should_fail; if(!empty($wp_filesystem_should_fail)){ $wp_filesystem=null; return false; } $wp_filesystem=new FakeFS(); return true;}
-class WP_Filesystem_Direct extends FakeFS { public function __construct($args=null){} }
 class FakeFS {
     public function delete($path,$recursive=false){
         if(is_dir($path)){ rrmdir($path); }
@@ -26,6 +25,7 @@ class FakeFS {
         return true;
     }
 }
+class WP_Filesystem_Direct extends FakeFS { public function __construct($args=null){} }
 function rrmdir($dir){
     if(!is_dir($dir)) return;
     $items=scandir($dir);
