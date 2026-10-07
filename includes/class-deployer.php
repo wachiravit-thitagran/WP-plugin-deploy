@@ -20,7 +20,8 @@ class WP_Plugin_Deploy_Deployer {
         $hint = $expected ?: ( $source['plugin_slug_hint'] ?? '' );
         $detected = $this->detect_plugin($stage,$hint); if(is_wp_error($detected)){$this->cleanup($stage);return $detected;}
         $slug=$detected['slug']; $target=WP_PLUGIN_DIR.'/'.$slug; $existing=$this->inspector->find_by_slug($slug); $backup=null; $replacement_started=false;
-        WP_Filesystem(); global $wp_filesystem; if(!$wp_filesystem){$this->cleanup($stage);return new WP_Error('filesystem_failed','WordPress filesystem is unavailable.');}
+        $filesystem=WP_Plugin_Deploy_Filesystem::init(WP_PLUGIN_DIR); if(is_wp_error($filesystem)){$this->cleanup($stage);return $filesystem;}
+        global $wp_filesystem;
         if($existing){$backup=$this->backups->create($slug,$target,is_plugin_active($existing['file'])); if(is_wp_error($backup)){$this->cleanup($stage);return $backup;}}
         try {
             if(is_dir($target)){ if(!$wp_filesystem->delete($target,true)) throw new Exception('Unable to remove existing plugin directory.'); $replacement_started=true; }
@@ -42,5 +43,9 @@ class WP_Plugin_Deploy_Deployer {
         $main=$files[0]; $root=dirname($main); $slug=$expected?:sanitize_key(basename($root)); if(!WP_Plugin_Deploy_Package_Validator::is_valid_slug($slug)) return new WP_Error('invalid_plugin_package','Unable to determine a valid plugin slug.');
         return array('slug'=>$slug,'root'=>$root,'main'=>basename($main));
     }
-    private function cleanup($path){ if(!is_dir($path))return; require_once ABSPATH.'wp-admin/includes/file.php'; WP_Filesystem(); global $wp_filesystem; if($wp_filesystem)$wp_filesystem->delete($path,true); }
+    private function cleanup($path){
+        if(!is_dir($path))return;
+        $filesystem=WP_Plugin_Deploy_Filesystem::init(get_temp_dir());
+        if(!is_wp_error($filesystem)){$filesystem->delete($path,true);}
+    }
 }
