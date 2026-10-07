@@ -15,6 +15,7 @@ $out = $r->resolve(['source'=>'https://github.com/acme/example-plugin','ref'=>'v
 assert_true(!is_wp_error($out), 'GitHub tag source should resolve');
 assert_true($out['download_url']==='https://api.github.com/repos/acme/example-plugin/zipball/v1.2.3', 'GitHub tag should use API zipball URL');
 assert_true($out['source_type']==='github', 'GitHub source type');
+assert_true($out['plugin_slug_hint']==='example-plugin', 'GitHub repo name should provide stable slug hint');
 
 $bad = $r->resolve(['source'=>'http://example.com/plugin.zip']);
 assert_true(is_wp_error($bad) && $bad->get_error_code()==='invalid_source', 'HTTP source must be rejected');
