@@ -17,7 +17,8 @@ function wp_generate_password($length=12,$special=true,$extra=false){return 'abc
 function wp_mkdir_p($path){return is_dir($path) || mkdir($path,0777,true);}
 function current_user_can($cap){global $caps; return !empty($caps[$cap]);}
 function wp_clean_plugins_cache($clear=false){}
-function WP_Filesystem(){global $wp_filesystem; $wp_filesystem=new FakeFS(); return true;}
+function WP_Filesystem(){global $wp_filesystem,$wp_filesystem_should_fail; if(!empty($wp_filesystem_should_fail)){ $wp_filesystem=null; return false; } $wp_filesystem=new FakeFS(); return true;}
+class WP_Filesystem_Direct extends FakeFS { public function __construct($args=null){} }
 class FakeFS {
     public function delete($path,$recursive=false){
         if(is_dir($path)){ rrmdir($path); }
@@ -132,13 +133,14 @@ function make_deployer(&$backups,&$store,&$rollback){
     return new WP_Plugin_Deploy_Deployer(new FakeResolver(),new FakeValidator(),$backups,$store,new FakeInspector(),$rollback);
 }
 function reset_fixture(){
-    global $caps,$installed_plugins,$active_plugins,$activation_should_fail,$fixture_slug,$fixture_version;
+    global $caps,$installed_plugins,$active_plugins,$activation_should_fail,$fixture_slug,$fixture_version,$wp_filesystem_should_fail;
     $caps=array('install_plugins'=>true,'update_plugins'=>true,'activate_plugins'=>true);
     $installed_plugins=array();
     $active_plugins=array();
     $activation_should_fail=false;
     $fixture_slug='fixture-plugin';
     $fixture_version='2.0.0';
+    $wp_filesystem_should_fail=false;
     rrmdir(WP_PLUGIN_DIR.'/fixture-plugin');
 }
 
