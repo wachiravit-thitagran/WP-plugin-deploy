@@ -11,7 +11,7 @@ $fake = sys_get_temp_dir().'/wp-plugin-deploy-fake/';
 @touch($fake.'wp-admin/includes/file.php');
 @touch($fake.'wp-admin/includes/plugin.php');
 define('ABSPATH',$fake); define('WP_PLUGIN_DIR',__DIR__.'/plugins'); define('WP_CONTENT_DIR',__DIR__.'/content');
-require __DIR__.'/../includes/class-package-validator.php'; require __DIR__.'/../includes/class-rollback-manager.php';
+require __DIR__.'/../includes/class-package-validator.php'; require __DIR__.'/../includes/class-filesystem.php'; require __DIR__.'/../includes/class-rollback-manager.php';
 class Store {function record($e){}}
 class Backups {function get($s,$id=null){return ['id'=>'b1','path'=>__DIR__,'was_active'=>false];}}
 $active=true; $mgr=new WP_Plugin_Deploy_Rollback_Manager(new Backups(),new Store());
