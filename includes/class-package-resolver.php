@@ -38,6 +38,7 @@ class WP_Plugin_Deploy_Package_Resolver {
                 'source_reference' => 'https://github.com/' . $owner . '/' . $repo,
                 'ref'              => $ref,
                 'ref_type'         => sanitize_key( $request['ref_type'] ?? '' ),
+                'plugin_slug_hint' => sanitize_key( $repo ),
             );
         }
 
