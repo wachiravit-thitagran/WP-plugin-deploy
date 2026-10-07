@@ -9,10 +9,9 @@ class WP_Plugin_Deploy_Backup_Manager {
         if ( ! WP_Plugin_Deploy_Package_Validator::is_valid_slug( $slug ) || ! is_dir( $source_dir ) ) {
             return new WP_Error( 'backup_failed', 'Invalid plugin backup source.' );
         }
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        WP_Filesystem();
+        $filesystem = WP_Plugin_Deploy_Filesystem::init( WP_CONTENT_DIR );
+        if ( is_wp_error( $filesystem ) ) { return new WP_Error( 'backup_failed', $filesystem->get_error_message() ); }
         global $wp_filesystem;
-        if ( ! $wp_filesystem ) { return new WP_Error( 'backup_failed', 'WordPress filesystem is unavailable.' ); }
         $this->ensure_root();
         $id = gmdate( 'YmdHis' ) . '-' . wp_generate_password( 6, false, false );
         $dest = $this->root . '/' . $slug . '/' . $id;
