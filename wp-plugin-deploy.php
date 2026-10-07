@@ -13,5 +13,5 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 define( 'WP_PLUGIN_DEPLOY_VERSION', '0.1.0' );
 define( 'WP_PLUGIN_DEPLOY_FILE', __FILE__ );
 define( 'WP_PLUGIN_DEPLOY_DIR', plugin_dir_path( __FILE__ ) );
-foreach ( array('class-package-resolver.php','class-package-validator.php','class-deployment-store.php','class-backup-manager.php','class-plugin-inspector.php','class-rollback-manager.php','class-deployer.php','class-abilities.php') as $file ) { require_once WP_PLUGIN_DEPLOY_DIR . 'includes/' . $file; }
+foreach ( array('class-filesystem.php','class-package-resolver.php','class-package-validator.php','class-deployment-store.php','class-backup-manager.php','class-plugin-inspector.php','class-rollback-manager.php','class-deployer.php','class-abilities.php') as $file ) { require_once WP_PLUGIN_DEPLOY_DIR . 'includes/' . $file; }
 WP_Plugin_Deploy_Abilities::init();
