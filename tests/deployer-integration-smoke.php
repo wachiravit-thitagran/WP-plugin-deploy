@@ -42,7 +42,8 @@ function download_url($url,$timeout=60){
     return $tmp;
 }
 function unzip_file($zip,$stage){
-    global $fixture_slug,$fixture_version;
+    global $fixture_slug,$fixture_version,$wp_filesystem,$require_filesystem_before_unzip;
+    if(!empty($require_filesystem_before_unzip) && !$wp_filesystem){ return new WP_Error('filesystem_failed','Could not access filesystem.'); }
     $root=$stage.'/github-generated-root';
     mkdir($root,0777,true);
     file_put_contents($root.'/plugin.php',"<?php\n/*\nPlugin Name: Fixture Plugin\nVersion: ".$fixture_version."\n*/\n");
@@ -134,7 +135,7 @@ function make_deployer(&$backups,&$store,&$rollback){
     return new WP_Plugin_Deploy_Deployer(new FakeResolver(),new FakeValidator(),$backups,$store,new FakeInspector(),$rollback);
 }
 function reset_fixture(){
-    global $caps,$installed_plugins,$active_plugins,$activation_should_fail,$fixture_slug,$fixture_version,$wp_filesystem_should_fail;
+    global $caps,$installed_plugins,$active_plugins,$activation_should_fail,$fixture_slug,$fixture_version,$wp_filesystem_should_fail,$require_filesystem_before_unzip,$wp_filesystem;
     $caps=array('install_plugins'=>true,'update_plugins'=>true,'activate_plugins'=>true);
     $installed_plugins=array();
     $active_plugins=array();
@@ -142,6 +143,8 @@ function reset_fixture(){
     $fixture_slug='fixture-plugin';
     $fixture_version='2.0.0';
     $wp_filesystem_should_fail=false;
+    $require_filesystem_before_unzip=false;
+    $wp_filesystem=null;
     rrmdir(WP_PLUGIN_DIR.'/fixture-plugin');
 }
 
@@ -172,6 +175,14 @@ $result=$deployer->deploy(array('source'=>'https://github.com/acme/fixture-plugi
 assert_true(!is_wp_error($result),'writable direct filesystem fallback should allow deploy when WP_Filesystem bootstrap fails');
 assert_true(($result['active']??false)===true,'direct filesystem fallback deployment should activate plugin');
 echo "PASS direct filesystem fallback\n";
+
+reset_fixture();
+$wp_filesystem_should_fail=true;
+$require_filesystem_before_unzip=true;
+$deployer=make_deployer($backups,$store,$rollback);
+$result=$deployer->deploy(array('source'=>'https://github.com/acme/fixture-plugin','activate'=>true));
+assert_true(!is_wp_error($result),'filesystem must be initialized before unzip_file is called');
+echo "PASS filesystem before unzip\n";
 
 reset_fixture();
 @mkdir(WP_PLUGIN_DIR.'/fixture-plugin',0777,true);
