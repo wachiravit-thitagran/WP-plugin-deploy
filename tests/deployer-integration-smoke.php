@@ -57,6 +57,14 @@ function copy_dir($source,$target){
     $installed_plugins['fixture-plugin']=array('file'=>'fixture-plugin/plugin.php','data'=>array('Version'=>'2.0.0'));
     return true;
 }
+function get_plugins(){
+    global $installed_plugins;
+    $plugins=array();
+    foreach($installed_plugins as $plugin){
+        $plugins[$plugin['file']]=$plugin['data'];
+    }
+    return $plugins;
+}
 function is_plugin_active($file){global $active_plugins; return in_array($file,$active_plugins,true);}
 function activate_plugin($file){
     global $activation_should_fail,$active_plugins;
@@ -169,10 +177,16 @@ assert_true($backups->created===1,'update must create exactly one backup');
 assert_true($rollback->calls===1,'activation failure after replacement must invoke rollback exactly once');
 echo "PASS activation rollback\n";
 
+reset_fixture();
+$installed_plugins['fixture-plugin']=array('file'=>'fixture-plugin/plugin.php','data'=>array('Version'=>'2.0.0'));
+$active_plugins[]='fixture-plugin/plugin.php';
 $store=new FakeStore();
 $store->record(array('plugin_slug'=>'fixture-plugin','status'=>'success'));
 $inspector=new WP_Plugin_Deploy_Plugin_Inspector($store,new FakeBackupList());
 $status=$inspector->status('fixture-plugin');
+assert_true($status['installed']===true,'status should report installed plugin');
+assert_true($status['active']===true,'status should report active plugin');
+assert_true(($status['version']??'')==='2.0.0','status should expose plugin version');
 assert_true(isset($status['backups'][0]['id']),'status should include backup id');
 assert_true(!isset($status['backups'][0]['path']),'status must not expose backup filesystem path');
 echo "PASS status redaction\n";
